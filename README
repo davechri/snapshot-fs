@@ -1,0 +1,44 @@
+The snapshotfs directory is a C++ Eclipse project.
+
+REQUIRED PACKAGES
+-------- --------
+- fuse		User space file system
+- fuse-devel	fuse source files - Required to build snapshotfs.
+
+ECLIPSE
+-------
+
+Perform these step to import the existing snapshotfs Eclipse project:
+1) Make your Eclipse workspace directory for snapshotfs (e.g., mkdir ~/sandbox/snapshotfs)
+2) Create symbolic link to the snapshotfs project in the main Jazz repository:
+   	ln -s ~/sandbox/main/iomc_src/test/snapshotfs ~/sandbox/snapshotfs/snapshotfs
+     or using a relative links:
+   	ln -s ../main/iomc_src/test/snapshotfs ~/sandbox/snapshotfs/snapshotfs
+3) Start Eclipse and select your snapshotfs workspace (e.g., ~/sandbox/snapshotfs)
+4) Import the snapshotfs project:
+   - File->Import->General->Existing Projects into Wworkspace
+   - Click Next
+   - Click Browse
+   - Select the Jazz snapshotfs directory (e.g., ~/sandbox/main/iomc_src/test/snapshotfs)
+   - Click Finish
+
+How to create the Eclipse project from scratch:
+1) Create Eclipse project:
+   - File->New->C++ Project:
+   - Project name:  snapshotfs
+   - Project type:  Executable/Empty Project	
+   - Toolchains:    Linux GCC
+   - click Finish
+2) Add -D_FILE_OFFSET_BITS=64 to the projects C++/C settings:
+   - Project->Properties->C/C++ Build->Settings:
+     - GCC C++ Compiler->Preprocessor:
+       - add _FILE_OFFSET_BITS=64
+     - GCC C Compiler->Symbols:
+       - add _FILE_OFFSET_BITS=64
+3) Include libraries:
+   - Project->Properties->C/C++ Build->Settings->GCC C++ Linker->Libraries:
+     - Add 'fuse' 
+     - Add 'pthread'
+     - Add 'ssh'
+4) Add -DDEBUG to the Debug configuration for debug compiles.  Debug compiles will not only
+   generate debug code, but will also cause logging to /var/log/messages.
