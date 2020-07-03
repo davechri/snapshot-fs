@@ -10,6 +10,7 @@
 #include "Types.H"
 #include "RmtFs.H"
 #include <limits.h>
+#include <assert.h>
 
 using namespace std;
 
@@ -22,17 +23,17 @@ string Metadata::Entry::toString() const
 	return str;
 }
 
-bool Metadata::exists(const char *iRelativePath)
+bool Metadata::metadataExists(const char *iRelativePath)
 {
 	EntryStat mdEntry;
-	return find(iRelativePath, mdEntry);
+	return findMetadata(iRelativePath, mdEntry);
 }
 
-bool Metadata::findChildren(const char *iRelativePath, vector<Metadata::EntryStat> &orChildren)
+bool Metadata::findMetadataChildren(const char *iRelativePath, vector<Metadata::EntryStat> &orChildren)
 {
 	lock();
 
-	Entry *pMdEntry = locate(iRelativePath);
+	Entry *pMdEntry = locateMetadata(iRelativePath);
 	if(pMdEntry)
 	{
 		for(map<Key,Entry>::iterator iter = pMdEntry->children.begin();
@@ -47,12 +48,12 @@ bool Metadata::findChildren(const char *iRelativePath, vector<Metadata::EntrySta
 	return !orChildren.empty();
 }
 
-bool Metadata::find(const char *iRelativePath, EntryStat &orEntry)
+bool Metadata::findMetadata(const char *iRelativePath, EntryStat &orEntry)
 {
 	lock();
 
 	bzero(&orEntry, sizeof(orEntry));
-	Entry *pMdEntry = locate(iRelativePath);
+	Entry *pMdEntry = locateMetadata(iRelativePath);
 	if(pMdEntry)
 	{
 		orEntry = *pMdEntry;
@@ -63,7 +64,7 @@ bool Metadata::find(const char *iRelativePath, EntryStat &orEntry)
 	return pMdEntry != NULL;
 }
 
-Metadata::Entry* Metadata::locate(const char *iRelativePath)
+Metadata::Entry* Metadata::locateMetadata(const char *iRelativePath)
 {
 	SYSLOG("Entry: %s", iRelativePath);
 	Entry *pMdEntry = NULL;
@@ -155,7 +156,7 @@ Metadata::Entry* Metadata::locate(const char *iRelativePath)
 	return pMdEntry;
 }
 
-void Metadata::add(const char *iRelativePath,
+void Metadata::addMetadata(const char *iRelativePath,
 		const struct stat &irStatInfo,
 		time_t iPopulateTime, EntryType iType)
 {
@@ -170,16 +171,18 @@ void Metadata::add(const char *iRelativePath,
 
 	if(strlen(iRelativePath) == 1)
 	{
-		delete ivpRoot;
-		*mdEntry.name = '/';
-		ivpRoot = new Entry(mdEntry);
+		if(!ivpRoot) {
+			delete ivpRoot;
+			*mdEntry.name = '/';
+			ivpRoot = new Entry(mdEntry);	
+		}	
 	}
 	else
 	{
 		strcpy(mdEntry.name, path.fileName());
 		// Locate parent
 		path.cdToParent();
-		Entry *pMdParent = locate(path.toString());
+		Entry *pMdParent = locateMetadata(path.toString());
 		if(pMdParent)
 		{
 			// Check for old entry
@@ -195,7 +198,7 @@ void Metadata::add(const char *iRelativePath,
 			}
 			// Add child
 			pMdParent->children[mdEntry.name] = mdEntry;
-			SYSLOG("successful: %s %s", iRelativePath, mdEntry.toString().c_str());
+			SYSLOG("successful: %s %s", iRelativePath, mdEntry.toString().c_str());					
 		}
 		else
 		{
@@ -205,7 +208,7 @@ void Metadata::add(const char *iRelativePath,
 
 	unlock();
 }
-void Metadata::remove(const char *iRelativePath)
+void Metadata::removeMetadata(const char *iRelativePath)
 {
 	SYSLOG("Entry: %s", iRelativePath);
 
@@ -219,7 +222,7 @@ void Metadata::remove(const char *iRelativePath)
 	{
 		RelativePath parentPath(iRelativePath);
 		parentPath.cdToParent();
-		Entry *pMdEntry = locate(parentPath.toString());
+		Entry *pMdEntry = locateMetadata(parentPath.toString());
 		if(pMdEntry)
 		{
 

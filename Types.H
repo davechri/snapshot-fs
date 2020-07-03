@@ -22,7 +22,7 @@
 	{ \
 	   FILE *file = fopen(g_config.logFile, "a+"); \
 	   if (!file) file = stdout; \
-	   fprintf(file, "tid=%u %s %s: "format"\n", (uint)pthread_self(), __FUNCTION__, g_config.mountPoint, args); \
+	   fprintf(file, "tid=%u %s %s: " format "\n", (uint)pthread_self(), __FUNCTION__, g_config.mountPoint, args); \
 	   fclose(file); \
 	}
 
@@ -32,7 +32,7 @@
 	   FILE *file = fopen(g_config.logFile, "a+"); \
 	   if (!file) file = stderr; \
 	   fprintf(file,"tid=%u ##error## %s:%d ", (uint)pthread_self(),  __FUNCTION__, __LINE__); \
-	   fprintf(file, "%s: "format"\n", g_config.mountPoint, args); \
+	   fprintf(file, "%s: " format "\n", g_config.mountPoint, args); \
 	   fclose(file); \
 	}
 #define SYSLOG_DELETE() \
