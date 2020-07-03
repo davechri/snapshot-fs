@@ -57,18 +57,18 @@ public:
 		std::map<Key,Entry> children;
 	};
 
-	bool exists(const char *iRelativePath);
-	bool findChildren(const char *iRelativePath, std::vector<EntryStat> &orChildren);
-	bool find(const char *iRelativePath, EntryStat &orEntry);
+	bool metadataExists(const char *iRelativePath);
+	bool findMetadataChildren(const char *iRelativePath, std::vector<EntryStat> &orChildren);
+	bool findMetadata(const char *iRelativePath, EntryStat &orEntry);
 	enum EntryType {
 		NORMAL,
 		NEGATIVE
 	};
-	void add(const char *iRelativePath,
+	void addMetadata(const char *iRelativePath,
 				const struct stat &irStatInfo, time_t iPopulateTime=0, EntryType iType=NORMAL);
-	void remove(const char *iRelativePath);
+	void removeMetadata(const char *iRelativePath);
 private:
-	Entry* locate(const char *iRelativePath);
+	Entry* locateMetadata(const char *iRelativePath);
 	void lock() {pthread_mutex_lock(&ivMutex);}
 	void unlock() {pthread_mutex_unlock(&ivMutex);}
 	// Private data

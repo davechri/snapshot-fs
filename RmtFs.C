@@ -38,7 +38,7 @@ int RmtFs::getConnection(RmtFs *&opRmtFs)
 
 	lock();
 	// Reuse an active connection, if possible
-	while(cvConnectionList.front() && !pRmtFs)
+	while(!cvConnectionList.empty() && !pRmtFs)
 	{
 		pRmtFs = cvConnectionList.front();
 		cvConnectionList.pop_front();

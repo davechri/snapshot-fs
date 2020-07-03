@@ -170,7 +170,7 @@ int FileSystem::Getattr(const char *iRelativePath, struct stat *ipStatInfo)
     do {
     	errno = 0;
     	Metadata::EntryStat mdEntry;
-    	if(g_metadata.find(iRelativePath,  mdEntry))
+    	if(g_metadata.findMetadata(iRelativePath,  mdEntry))
     	{
     		*ipStatInfo = mdEntry.statInfo;
 
@@ -203,7 +203,7 @@ int FileSystem::Getattr(const char *iRelativePath, struct stat *ipStatInfo)
     			if(rc)
     			{
     				// Add negative cache entry
-    				g_metadata.add(iRelativePath, *ipStatInfo, 0, Metadata::NEGATIVE);
+    				g_metadata.addMetadata(iRelativePath, *ipStatInfo, 0, Metadata::NEGATIVE);
     				errno = ENOENT;
     				SYSLOG_ERROR("lstat failed errno=%d %s", errno, iRelativePath);
     				rc = -errno;
@@ -211,7 +211,7 @@ int FileSystem::Getattr(const char *iRelativePath, struct stat *ipStatInfo)
     			}
 
     			// Add new metadata entry
-				g_metadata.add(iRelativePath, *ipStatInfo);
+				g_metadata.addMetadata(iRelativePath, *ipStatInfo);
     		}
     	}
 
@@ -246,7 +246,7 @@ int FileSystem::Readlink(const char *iRelativePath, char *opBuf, size_t iBufSize
 			}
 
 			Metadata::EntryStat mdEntry;
-			if(!g_metadata.find(iRelativePath, mdEntry) || mdEntry.negative) {
+			if(!g_metadata.findMetadata(iRelativePath, mdEntry) || mdEntry.negative) {
 				errno = ENOENT;
 				SYSLOG_ERROR("lstat errno %d %s", errno, iRelativePath);
 				rc = -errno;
@@ -282,11 +282,11 @@ int FileSystem::Readlink(const char *iRelativePath, char *opBuf, size_t iBufSize
 		else
 		{
 			// Metadata is out of sync with cache?
-			if(!g_metadata.exists(iRelativePath))
+			if(!g_metadata.metadataExists(iRelativePath))
 			{
 				struct stat statInfo;
 				lstat(iRelativePath, &statInfo);
-				g_metadata.add(iRelativePath, statInfo);
+				g_metadata.addMetadata(iRelativePath, statInfo);
 			}
 			/** @todo add refreshLinks flag???? **/
 			if(g_config.refreshOpenedFiles)
@@ -314,7 +314,7 @@ int FileSystem::Getdir(const char *iRelativePath, fuse_dirh_t iHandle, fuse_dirf
     /** Should be ok to just check metadata, since getattr is always called first
      *  and will create the directory in the cache.  **/
     Metadata::EntryStat mdEntry;
-	if(!g_metadata.find(iRelativePath, mdEntry) || mdEntry.negative) {
+	if(!g_metadata.findMetadata(iRelativePath, mdEntry) || mdEntry.negative) {
 		errno = ENOENT;
 		SYSLOG_ERROR("errno %d %s", errno, iRelativePath);
 		rc = -errno;
@@ -328,7 +328,7 @@ int FileSystem::Getdir(const char *iRelativePath, fuse_dirh_t iHandle, fuse_dirf
 		}
 
 		vector<Metadata::EntryStat> children;
-		g_metadata.findChildren(iRelativePath, children);
+		g_metadata.findMetadataChildren(iRelativePath, children);
 		for(uint32_t i = 0; i < children.size(); ++i) {
 			mode_t mode = children[i].statInfo.st_mode;
 			int dtype;
@@ -411,7 +411,7 @@ int FileSystem::Unlink(const char *iRelativePath)
 	}
 
     // Remove metadata
-    g_metadata.remove(iRelativePath);
+    g_metadata.removeMetadata(iRelativePath);
 
 	// Remove cache file, if it exists
 	unlink(CacheDir(iRelativePath));

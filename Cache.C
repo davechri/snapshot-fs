@@ -149,7 +149,7 @@ int Cache::populateDir(const char *iRelativeDir, const Metadata::EntryStat &iMdE
 		{
 			if(*dirEntry.name && strcmp(dirEntry.name, ".") && strcmp(dirEntry.name, ".."))
 			{
-				g_metadata.add(RelativePath(iRelativeDir, dirEntry.name).toString(),
+				g_metadata.addMetadata(RelativePath(iRelativeDir, dirEntry.name).toString(),
 								dirEntry.statInfo);
 			}
 		}
@@ -157,7 +157,7 @@ int Cache::populateDir(const char *iRelativeDir, const Metadata::EntryStat &iMdE
 		if(!rc)
 		{
 			// Update the populate time in the metadata entry
-			g_metadata.add(iRelativeDir, iMdEntry.statInfo, FileSystem::getRefreshStartTime());
+			g_metadata.addMetadata(iRelativeDir, iMdEntry.statInfo, FileSystem::getRefreshStartTime());
 		}
 	}
 
